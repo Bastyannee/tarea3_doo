@@ -1,18 +1,15 @@
 package view;
-import logica.Expendedor;
 
+import logica.Expendedor;
 import javax.swing.JPanel;
-import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class PanelPrincipal extends JPanel {
-    // Instancia única del modelo lógico compartida
     private final Expendedor expendedor;
-    
-    // Sub-paneles visuales (Vistas)
     private final PanelExpendedor panelExpendedor;
     private final PanelComprador panelComprador;
 
@@ -20,29 +17,29 @@ public class PanelPrincipal extends JPanel {
         this.setPreferredSize(new Dimension(1024, 768));
         this.setBackground(Color.WHITE);
 
-        // 1. Inicializar el Modelo (Lógica Tarea 1) con stock inicial
         this.expendedor = new Expendedor(5);
 
-        // 2. Inicializar las Vistas pasando las referencias lógicas y coordenadas (x, y) relativas
-        this.panelExpendedor = new PanelExpendedor(50, 50, expendedor);
-        this.panelComprador = new PanelComprador(600, 50, expendedor);
+        // 1. Refactorización: Pasamos (x, y, ancho, alto, modelo lógico)
+        // El Comprador toma la franja izquierda (300px de ancho)
+        this.panelComprador = new PanelComprador(0, 0, 300, 768, expendedor);
 
-        // 3. Captura centralizada de eventos del mouse (MouseListener)
+        // El Expendedor toma el resto de la ventana hacia la derecha
+        this.panelExpendedor = new PanelExpendedor(300, 0, 724, 768, expendedor);
+
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
+                int mouseX = e.getX();
+                int mouseY = e.getY();
 
-                // Delegación de eventos orientada a objetos
-                if (panelExpendedor.contieneCoordenadas(x, y)) {
-                    panelExpendedor.procesarClick(x, y);
-                } else if (panelComprador.contieneCoordenadas(x, y)) {
-                    panelComprador.procesarClick(x, y);
+                // 2. Delegación espacial estricta
+                if (panelComprador.contieneCoordenadas(mouseX, mouseY)) {
+                    panelComprador.procesarClick(mouseX, mouseY);
+                } else if (panelExpendedor.contieneCoordenadas(mouseX, mouseY)) {
+                    panelExpendedor.procesarClick(mouseX, mouseY);
                 }
 
-                // Actualización del árbol de rendering visual posterior al cambio de estado
-                repaint();
+                repaint(); // Ordena a Swing que repinte la pantalla completa
             }
         });
     }
@@ -50,9 +47,8 @@ public class PanelPrincipal extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
-        // Propagación en cascada del renderizado de los componentes
-        panelExpendedor.paintComponent(g);
+        // Cascading render
         panelComprador.paintComponent(g);
+        panelExpendedor.paintComponent(g);
     }
 }
