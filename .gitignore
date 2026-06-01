@@ -1,0 +1,16 @@
+# Compilados de Java
+*.class
+
+# Carpetas de salida de construcción
+bin/
+out/
+build/
+
+# Configuraciones de IDEs (VS Code e IntelliJ)
+.vscode/
+.idea/
+*.iml
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
