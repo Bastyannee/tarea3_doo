@@ -3,38 +3,62 @@ package view;
 import logica.Expendedor;
 import javax.swing.JPanel;
 import java.awt.Graphics;
-import java.awt.Color;
 
+/**
+ * Stub de la vista del Expendedor.
+ * Gestiona el área gráfica derecha de la pantalla, dibujando la estructura
+ * de la máquina, los depósitos, y el control de stock.
+ */
 public class PanelExpendedor extends JPanel {
     private final Expendedor exp;
-    private int x, y, ancho, alto;
-    
-    // Constructor corregido con los 5 parámetros requeridos
-   public PanelExpendedor(int x, int y, int ancho, int alto, Expendedor exp) {
-    this.x = x; this.y = y; this.ancho = ancho; this.alto = alto; this.exp = exp;
-}
+    private int x;
+    private int y;
+    private int ancho;
+    private int alto;
 
-    // Método matemático para verificar si el click cayó dentro del área del Expendedor
+    /**
+     * Constructor del panel del expendedor.
+     * * @param x Coordenada X de origen en el lienzo principal.
+     * @param y Coordenada Y de origen en el lienzo principal.
+     * @param ancho Ancho total del área interactiva.
+     * @param alto Alto total del área interactiva.
+     * @param exp Referencia compartida al modelo lógico.
+     */
+    public PanelExpendedor(int x, int y, int ancho, int alto, Expendedor exp) {
+        this.x = x;
+        this.y = y;
+        this.ancho = ancho;
+        this.alto = alto;
+        this.exp = exp;
+    }
+
+    /**
+     * Evalúa si un punto cartesiano (click) colisiona con el Bounding Box de este panel.
+     * * @param mouseX Coordenada X del click.
+     * @param mouseY Coordenada Y del click.
+     * @return true si las coordenadas están dentro del área; false en caso contrario.
+     */
     public boolean contieneCoordenadas(int mouseX, int mouseY) {
-    return (mouseX >= this.x && mouseX < this.x + this.ancho &&
-            mouseY >= this.y && mouseY < this.y + this.alto);
+        return (mouseX >= this.x && mouseX < this.x + this.ancho &&
+                mouseY >= this.y && mouseY < this.y + this.alto);
     }
 
+    /**
+     * Procesa la lógica de negocio asociada a un click válido dentro del panel.
+     * * @param mouseX Coordenada X del click.
+     * @param mouseY Coordenada Y del click.
+     */
     public void procesarClick(int mouseX, int mouseY) {
-        // Aquí interactuará tu compañera (Integrante 2) para rellenar depósitos o comprar
-        System.out.println("Click capturado en el área del Expendedor: (" + mouseX + ", " + mouseY + ")");
+        // Implementación pendiente por Integrante 2
     }
 
+    /**
+     * Dibuja los componentes visuales correspondientes al expendedor.
+     * * @param g Contexto gráfico proporcionado por Swing.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
-        // Dibujo del contenedor base para pruebas visuales
-        g.setColor(Color.DARK_GRAY);
-        g.fillRect(x, y, ancho, alto);
-        
-        g.setColor(Color.BLACK);
-        g.drawRect(x, y, ancho, alto);
-        g.drawString("Área Expendedor", x + 20, y + 30);
+        // Implementación pendiente por Integrante 2
     }
 }

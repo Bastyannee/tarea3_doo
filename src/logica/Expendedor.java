@@ -1,4 +1,6 @@
-package logica;/**
+package logica;
+import logica.exceptions.*;
+/**
  * Representa la máquina expendedora que gestiona el inventario de productos
  * y las transacciones de venta con monedas.
  */

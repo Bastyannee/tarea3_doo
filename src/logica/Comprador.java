@@ -1,5 +1,5 @@
 package logica;
-
+import logica.exceptions.*;
 /**
  * Entidad que simula a un cliente interactuando con la máquina expendedora.
  */
