@@ -1,55 +1,96 @@
 package logica;
 import logica.exceptions.*;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * Entidad que simula a un cliente interactuando con la máquina expendedora.
  */
 
 public class Comprador {
-    private String producto;
-    private int vuelto = 0;
+    private int saldo;
+    private List<Moneda> monedas;
+    private List<Producto> productos;
+    private static final int saldo_inicial = 5000;
 
     /**
-     * El comprador intenta adquirir un producto desde el expendedor, ingresando una moneda y seleccionando un tipo.
-     * Si la compra falla, la excepción correspondiente delegará el error al Main.
-     *
-     * @param mon La moneda utilizada para el pago.
-     * @param tipo El tipo de producto deseado (Enum TipoProducto).
-     * @param exp La referencia a la máquina expendedora.
-     * @throws PagoIncorrectoException Si la moneda es nula.
-     * @throws PagoInsuficienteException Si el valor de la moneda no cubre el precio.
-     * @throws NoHayProductoException Si no queda stock en el depósito correspondiente.
+     * Construye un comprador con saldo inicial y monedero con monedas de ejemplo.
      */
+    public Comprador() {
+        this.saldo = saldo_inicial;
+        this.monedas = new ArrayList<>();
+        this.productos = new ArrayList<>();
 
-    public Comprador(Moneda mon, TipoProducto tipo, Expendedor exp) throws PagoIncorrectoException, PagoInsuficienteException, NoHayProductoException {
-        // Si arroja excepción, el flujo se corta aquí y se delega al caller.
-        Producto prod = exp.comprarProducto(mon, tipo);
+        monedas.add(new Moneda(1000));
+        monedas.add(new Moneda(1000));
+        monedas.add(new Moneda(500));
+        monedas.add(new Moneda(500));
+        monedas.add(new Moneda(100));
+        monedas.add(new Moneda(100));
+        monedas.add(new Moneda(100));
+        monedas.add(new Moneda(50));
+        monedas.add(new Moneda(50));
+        monedas.add(new Moneda(10));
+    }
 
-        if (prod != null) {
-            this.producto = prod.consumir();
+    /**
+     * Descuenta una moneda del monedero según el valor especificado. Retorna la moneda descontada o null si no hay fondos suficientes.
+     *
+     * @param valor valor de la moneda a descontar.
+     * @return Moneda descontada, o null si no se encontró.
+     */
+    public Moneda descontarMoneda(int valor) {
+        for (int i = 0; i < monedas.size(); i++) {
+            if (monedas.get(i).getValor() == valor) {
+                saldo -= valor;
+                return monedas.remove(i);
+            }
         }
-        
-        // Solo llegamos a este punto si la compra fue un éxito.
-        Moneda m;
-        while ((m = exp.getVuelto()) != null) {
-            vuelto = vuelto + m.getValor();
+        return null;
+    }
+
+    /**
+     * Agrega una moneda recibida (vuelto) al monedero del comprador
+     * y actualiza el saldo.
+     *
+     * @param m Moneda recibida como vuelto.
+     */
+    public void recibirMoneda(Moneda m) {
+        if (m != null) {
+            monedas.add(m);
+            saldo += m.getValor();
         }
     }
 
     /**
-     * Retorna el total de dinero recibido como vuelto tras la transacción.
+     * Agrega un producto recogido a la colección del comprador.
      *
-     * @return El vuelto acumulado en formato entero.
+     * @param p Producto recogido del expendedor.
      */
-    public int cuantoVuelto() {
-        return vuelto;
+    public void recibirProducto(Producto p) {
+        if (p != null) {
+            productos.add(p);
+        }
     }
 
     /**
-     * Retorna el identificador del producto que fue consumido.
-     *
-     * @return Un string con el nombre del producto, o null si la compra falló.
+     * @return saldo disponible actual en pesos
      */
-    public String queConsumiste(){
-        return producto;
+    public int getSaldo() {
+        return saldo;
+    }
+
+    /**
+     * @return lista de monedas en el monedero
+     */
+    public List<Moneda> getMonedas() {
+        return monedas;
+    }
+
+    /**
+     * @return lista de productos recogidos
+     */
+    public List<Producto> getProductos() {
+        return productos;
     }
 }
