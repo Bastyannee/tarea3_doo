@@ -1,5 +1,6 @@
 package logica;
 import logica.exceptions.*;
+
 /**
  * Representa la máquina expendedora que gestiona el inventario de productos
  * y las transacciones de venta con monedas.
@@ -19,7 +20,6 @@ public class Expendedor {
     private Deposito<Moneda> depVuelto;
     /** Depósito interno para almacenar las monedas ingresadas. */
     private Deposito<Moneda> depIngresos;
-
 
     /**
      * Constructor del Expendedor.
@@ -99,5 +99,55 @@ public class Expendedor {
      */
     public Moneda getVuelto() {
         return depVuelto.get();
+    }
+
+    //MÉTODOS AGREGADOS PARA LA INTERFAZ GRÁFICA (VISTAS)
+
+    /**
+     * Obtiene el depósito que almacena las bebidas tipo CocaCola.
+     * @return El depósito correspondiente a CocaCola.
+     */
+    public Deposito<Producto> getDepositoCocaCola() {
+        return this.coca;
+    }
+
+    /**
+     * Obtiene el depósito que almacena las bebidas tipo Sprite.
+     * @return El depósito correspondiente a Sprite.
+     */
+    public Deposito<Producto> getDepositoSprite() {
+        return this.sprite;
+    }
+
+    /**
+     * Obtiene el depósito que almacena las bebidas tipo Fanta.
+     * @return El depósito correspondiente a Fanta.
+     */
+    public Deposito<Producto> getDepositoFanta() {
+        return this.fanta;
+    }
+
+    /**
+     * Obtiene el depósito que almacena las barras de Snickers.
+     * @return El depósito correspondiente a Snickers.
+     */
+    public Deposito<Producto> getDepositoSnickers() {
+        return this.snickers;
+    }
+
+    /**
+     * Obtiene el depósito que almacena las barras de Super8.
+     * @return El depósito correspondiente a Super8.
+     */
+    public Deposito<Producto> getDepositoSuper8() {
+        return this.super8;
+    }
+
+    /**
+     * Obtiene el depósito que almacena las monedas de vuelto.
+     * @return El depósito con las monedas para el vuelto.
+     */
+    public Deposito<Moneda> getDepositoVuelto() {
+        return this.depVuelto;
     }
 }
