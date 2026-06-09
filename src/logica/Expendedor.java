@@ -6,20 +6,16 @@ import logica.exceptions.*;
  * y las transacciones de venta con monedas.
  */
 public class Expendedor {
-    /** Depósito interno para almacenar latas de CocaCola. */
     private Deposito<Producto> coca;
-    /** Depósito interno para almacenar latas de Sprite. */
     private Deposito<Producto> sprite;
-    /** Depósito interno para almacenar latas de Fanta. */
     private Deposito<Producto> fanta;
-    /** Depósito interno para almacenar barras de Snickers. */
     private Deposito<Producto> snickers;
-    /** Depósito interno para almacenar barras de Super8. */
     private Deposito<Producto> super8;
-    /** Depósito interno para almacenar las monedas destinadas al vuelto. */
     private Deposito<Moneda> depVuelto;
-    /** Depósito interno para almacenar las monedas ingresadas. */
     private Deposito<Moneda> depIngresos;
+
+    /** Depósito especial de un solo producto donde cae la compra exitosa. */
+    private Producto depositoDespacho;
 
     /**
      * Constructor del Expendedor.
@@ -35,33 +31,37 @@ public class Expendedor {
         super8 = new Deposito<>();
         depVuelto = new Deposito<>();
         depIngresos = new Deposito<>();
+        depositoDespacho = null;
 
-        for (int i = 0; i < numProductos; i++) {
-            coca.add(new CocaCola(100 + i));
-            sprite.add(new Sprite(200 + i));
-            fanta.add(new Fanta(300 + i));
-            snickers.add(new Snickers(400 + i));
-            super8.add(new Super8(500 + i));
-        }
+        rellenarDepositosVaciados(numProductos);
     }
 
     /**
-     * Procesa la compra de un producto validando la moneda y el stock disponible.
+     * Rellena los depósitos que se encuentren vacíos, tal como exige la Tarea 3.
+     * @param cantidad La cantidad de productos a rellenar por depósito vacío.
+     */
+    public void rellenarDepositosVaciados(int cantidad) {
+        if (coca.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) coca.add(new CocaCola(1000 + i));
+        if (sprite.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) sprite.add(new Sprite(2000 + i));
+        if (fanta.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) fanta.add(new Fanta(3000 + i));
+        if (snickers.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) snickers.add(new Snickers(4000 + i));
+        if (super8.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) super8.add(new Super8(5000 + i));
+    }
+
+    /**
+     * Procesa la compra de un producto. Su tipo de retorno es void y el producto
+     * se deja en el depósito de despacho.
      *
      * @param m La moneda utilizada como medio de pago.
      * @param tipo El tipo de producto solicitado (Enum).
-     * @return El Producto extraído si la compra es exitosa.
      * @throws PagoIncorrectoException Si la moneda ingresada es nula.
      * @throws PagoInsuficienteException Si el valor de la moneda es menor al precio del producto.
      * @throws NoHayProductoException Si el depósito del producto solicitado está vacío.
      */
-    public Producto comprarProducto(Moneda m, TipoProducto tipo) throws PagoIncorrectoException, PagoInsuficienteException, NoHayProductoException {
-        if (m == null) {
-            throw new PagoIncorrectoException();
-        }
+    public void comprarProducto(Moneda m, TipoProducto tipo) throws PagoIncorrectoException, PagoInsuficienteException, NoHayProductoException {
+        if (m == null) throw new PagoIncorrectoException();
 
         int precio = tipo.getPrecio();
-
         if (m.getValor() < precio) {
             depVuelto.add(m);
             throw new PagoInsuficienteException();
@@ -82,72 +82,37 @@ public class Expendedor {
         }
 
         depIngresos.add(m);
-
         int vuelto = m.getValor() - precio;
         while (vuelto > 0) {
             depVuelto.add(new Moneda100());
             vuelto -= 100;
         }
 
+        // El producto se deja en el depósito especial
+        this.depositoDespacho = p;
+    }
+
+    /**
+     * Retira el producto comprado desde el depósito especial.
+     * @return El Producto comprado, o null si está vacío.
+     */
+    public Producto getProducto() {
+        Producto p = this.depositoDespacho;
+        this.depositoDespacho = null;
         return p;
     }
 
     /**
      * Permite retirar el vuelto moneda por moneda tras una transacción.
-     *
-     * @return Una instancia de Moneda (de $100) desde el depósito de vuelto, o null si está vacío.
+     * @return Una instancia de Moneda desde el depósito de vuelto, o null si está vacío.
      */
-    public Moneda getVuelto() {
-        return depVuelto.get();
-    }
+    public Moneda getVuelto() { return depVuelto.get(); }
 
-    //MÉTODOS AGREGADOS PARA LA INTERFAZ GRÁFICA (VISTAS)
-
-    /**
-     * Obtiene el depósito que almacena las bebidas tipo CocaCola.
-     * @return El depósito correspondiente a CocaCola.
-     */
-    public Deposito<Producto> getDepositoCocaCola() {
-        return this.coca;
-    }
-
-    /**
-     * Obtiene el depósito que almacena las bebidas tipo Sprite.
-     * @return El depósito correspondiente a Sprite.
-     */
-    public Deposito<Producto> getDepositoSprite() {
-        return this.sprite;
-    }
-
-    /**
-     * Obtiene el depósito que almacena las bebidas tipo Fanta.
-     * @return El depósito correspondiente a Fanta.
-     */
-    public Deposito<Producto> getDepositoFanta() {
-        return this.fanta;
-    }
-
-    /**
-     * Obtiene el depósito que almacena las barras de Snickers.
-     * @return El depósito correspondiente a Snickers.
-     */
-    public Deposito<Producto> getDepositoSnickers() {
-        return this.snickers;
-    }
-
-    /**
-     * Obtiene el depósito que almacena las barras de Super8.
-     * @return El depósito correspondiente a Super8.
-     */
-    public Deposito<Producto> getDepositoSuper8() {
-        return this.super8;
-    }
-
-    /**
-     * Obtiene el depósito que almacena las monedas de vuelto.
-     * @return El depósito con las monedas para el vuelto.
-     */
-    public Deposito<Moneda> getDepositoVuelto() {
-        return this.depVuelto;
-    }
+    // --- GETTERS PARA LAS VISTAS ---
+    public Deposito<Producto> getDepositoCocaCola() { return this.coca; }
+    public Deposito<Producto> getDepositoSprite() { return this.sprite; }
+    public Deposito<Producto> getDepositoFanta() { return this.fanta; }
+    public Deposito<Producto> getDepositoSnickers() { return this.snickers; }
+    public Deposito<Producto> getDepositoSuper8() { return this.super8; }
+    public Deposito<Moneda> getDepositoVuelto() { return this.depVuelto; }
 }

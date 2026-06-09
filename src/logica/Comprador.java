@@ -22,12 +22,15 @@ public class Comprador {
 
     public Comprador(Moneda mon, TipoProducto tipo, Expendedor exp) throws PagoIncorrectoException, PagoInsuficienteException, NoHayProductoException {
         // Si arroja excepción, el flujo se corta aquí y se delega al caller.
-        Producto prod = exp.comprarProducto(mon, tipo);
+
+        exp.comprarProducto(mon, tipo);
+
+        Producto prod = exp.getProducto();
 
         if (prod != null) {
             this.producto = prod.consumir();
         }
-        
+
         // Solo llegamos a este punto si la compra fue un éxito.
         Moneda m;
         while ((m = exp.getVuelto()) != null) {
