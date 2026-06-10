@@ -56,11 +56,9 @@ public abstract class Producto {
         else if (tipo.equals("super8")) g.setColor(Color.YELLOW);
         
         g.fillRect(this.x, this.y, 40, 60);
-        
         g.setColor(Color.BLACK);
         g.drawRect(this.x, this.y, 40, 60);
         
-        // Dibujar número de serie
         g.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 10));
         g.drawString(String.valueOf(this.getSerie()), this.x + 5, this.y + 30);
     }

@@ -44,17 +44,15 @@ public abstract class Moneda implements Comparable<Moneda> {
      * * @param g Contexto gráfico proporcionado por Swing.
      */
     public void paintComponent(Graphics g) {
-        if (this.getValor() == 100) g.setColor(new Color(205, 127, 50)); // Bronce
-        else if (this.getValor() == 500) g.setColor(new Color(192, 192, 192)); // Plata
-        else if (this.getValor() == 1000) g.setColor(new Color(255, 215, 0)); // Oro
+        if (this.getValor() == 100) g.setColor(new Color(205, 127, 50)); 
+        else if (this.getValor() == 500) g.setColor(new Color(192, 192, 192)); 
+        else if (this.getValor() == 1000) g.setColor(new Color(255, 215, 0)); 
         else g.setColor(Color.GREEN);
 
         g.fillOval(this.x, this.y, 30, 30);
-        
         g.setColor(Color.BLACK);
         g.drawOval(this.x, this.y, 30, 30);
         
-        // Dibujar número de serie truncado para que quepa en la moneda
         g.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 9));
         String serie = String.valueOf(Math.abs(this.getSerie()));
         g.drawString(serie.substring(0, Math.min(4, serie.length())), this.x + 3, this.y + 18);

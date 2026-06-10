@@ -287,6 +287,8 @@ public class PanelComprador extends JPanel {
             estado = "No hay productos en la bandeja de retiro.";
             return;
         }
+        exp.getProducto();
+
         comprador.recibirProducto(productoListo);
         estado = productoListo.getClass().getSimpleName() + " #" + productoListo.getSerie() + " recogido con éxito.";
         productoListo = null;

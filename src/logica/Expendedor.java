@@ -19,7 +19,7 @@ public class Expendedor {
     private Deposito<Moneda> depVuelto;
     /** Depósito interno para almacenar las monedas ingresadas. */
     private Deposito<Moneda> depIngresos;
-
+    private Producto depositoDespacho;
 
     /**
      * Constructor del Expendedor.
@@ -88,7 +88,7 @@ public class Expendedor {
             depVuelto.add(new Moneda100());
             vuelto -= 100;
         }
-
+        this.depositoDespacho = p;
         return p;
     }
 
@@ -121,4 +121,9 @@ public class Expendedor {
     public Deposito<Producto> getDepositoSnickers() { return this.snickers; }
     public Deposito<Producto> getDepositoSuper8() { return this.super8; }
     public Deposito<Moneda> getDepositoVuelto() { return this.depVuelto; }
+    public Producto getProducto() {
+        Producto p = this.depositoDespacho;
+        this.depositoDespacho = null;
+        return p;
+    }
 }
