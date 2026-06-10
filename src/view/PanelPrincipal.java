@@ -62,7 +62,7 @@ public class PanelPrincipal extends JPanel {
     }
 
     /**
-     * Método central de renderizado de Swing.
+     * Metodo central de renderizado de Swing.
      * Limpia el búfer gráfico y propaga la orden de pintado a las vistas hijas en cascada.
      * * @param g Contexto gráfico proporcionado por Swing.
      */

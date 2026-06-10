@@ -3,15 +3,19 @@ package view;
 import logica.Expendedor;
 import logica.Producto;
 import logica.Moneda;
+
 import javax.swing.JPanel;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import java.util.ArrayList;
 
 /**
- * Vista del Expendedor.
- * Gestiona el área gráfica derecha de la pantalla, dibujando la estructura
- * de la máquina, los depósitos, y el control de stock.
+ * Vista del Expendedor exclusiva para la Tarea 3.
+ * Dibuja la imagen de fondo y posiciona los productos en sus casilleros.
  */
 public class PanelExpendedor extends JPanel {
     private final Expendedor exp;
@@ -20,14 +24,9 @@ public class PanelExpendedor extends JPanel {
     private int ancho;
     private int alto;
 
-    /**
-     * Constructor del panel del expendedor.
-     * @param x Coordenada X de origen.
-     * @param y Coordenada Y de origen.
-     * @param ancho Ancho total de la máquina.
-     * @param alto Alto total de la máquina.
-     * @param exp Referencia al modelo lógico.
-     */
+    /** Imagen de fondo de la máquina expendedora */
+    private Image imagenFondo;
+
     public PanelExpendedor(int x, int y, int ancho, int alto, Expendedor exp) {
         this.x = x;
         this.y = y;
@@ -35,11 +34,18 @@ public class PanelExpendedor extends JPanel {
         this.alto = alto;
         this.exp = exp;
 
+        // PASO 2: Cargar la imagen de fondo desde la carpeta que creamos
+        try {
+            this.imagenFondo = ImageIO.read(new File("imagenes/maquinaexpendedora.png"));
+        } catch (IOException e) {
+            System.out.println("No se pudo cargar la imagen maquina.png");
+        }
+
+        // PASO 3: Posicionar los productos en la imagen
         reposicionarElementos();
     }
-
     /**
-     * Evalúa si un punto cartesiano (click) colisiona con el Expendedor.
+     * Evalúa si un punto cartesiano (click) colisiona con el área del expendedor.
      * @param mouseX Coordenada X del click.
      * @param mouseY Coordenada Y del click.
      * @return true si las coordenadas están dentro del área.
@@ -50,51 +56,55 @@ public class PanelExpendedor extends JPanel {
     }
 
     /**
-     * Procesa la lógica al hacer click. Rellena los depósitos vacíos.
+     * Procesa el click rellenando los depósitos vacíos, tal como pide el enunciado.
+     * @param mouseX Coordenada X del click.
+     * @param mouseY Coordenada Y del click.
      */
     public void procesarClick(int mouseX, int mouseY) {
-        exp.rellenarDepositosVaciados(5); // Rellena con 5 productos mágicamente
-        reposicionarElementos();          // Reacomoda las vistas
+        System.out.println("Click en la máquina detectado. Rellenando stock...");
+        exp.rellenarDepositosVaciados(5); // Rellena la máquina
+        reposicionarElementos();          // Reacomoda los productos visualmente
     }
 
     /**
-     * Asigna coordenadas físicas a los elementos dentro de los depósitos.
+     * Calcula las posiciones (x, y) de cada producto para que calcen
+     * dentro de los recuadros grises de tu imagen pixel-art.
      */
     public void reposicionarElementos() {
-        int margenX = this.x + 30;
-        int margenY = this.y + 40;
-        int separacionX = 45; // Espacio horizontal entre productos
-        int separacionY = 80; // Espacio vertical entre filas
+        // --- COORDENADAS PARA LA IMAGEN ---
+        // Tendrás que ajustar estos números (sumar o restar píxeles) para que calcen perfecto
+        int columna1X = this.x + 80;
+        int columna2X = this.x + 220;
+        int columna3X = this.x + 360;
+        int separacionEntreBotellas = 15; // Distancia entre botellas del mismo depósito
 
-        // Fila 1: CocaCola
-        asignarCoordenadas(exp.getDepositoCocaCola().getLista(), margenX, margenY, separacionX);
-        // Fila 2: Sprite
-        asignarCoordenadas(exp.getDepositoSprite().getLista(), margenX, margenY + separacionY, separacionX);
-        // Fila 3: Fanta
-        asignarCoordenadas(exp.getDepositoFanta().getLista(), margenX, margenY + (separacionY * 2), separacionX);
-        // Fila 4: Snickers
-        asignarCoordenadas(exp.getDepositoSnickers().getLista(), margenX, margenY + (separacionY * 3), separacionX);
-        // Fila 5: Super8
-        asignarCoordenadas(exp.getDepositoSuper8().getLista(), margenX, margenY + (separacionY * 4), separacionX);
+        // FILA DE ARRIBA (Recuadros grises superiores)
+        int filaArribaY = this.y + 150;
+        asignarCoordenadas(exp.getDepositoCocaCola().getLista(), columna1X, filaArribaY, separacionEntreBotellas);
+        asignarCoordenadas(exp.getDepositoSprite().getLista(), columna2X, filaArribaY, separacionEntreBotellas);
+        asignarCoordenadas(exp.getDepositoFanta().getLista(), columna3X, filaArribaY, separacionEntreBotellas);
 
-        // Reposicionar depósito de vuelto (amontonados en la esquina inferior izquierda)
+        // FILA DE ABAJO (Recuadros grises inferiores)
+        int filaAbajoY = this.y + 350;
+        asignarCoordenadas(exp.getDepositoSnickers().getLista(), columna1X, filaAbajoY, separacionEntreBotellas);
+        asignarCoordenadas(exp.getDepositoSuper8().getLista(), columna2X, filaAbajoY, separacionEntreBotellas);
+        // Te queda un 6to recuadro gris libre, según tu dibujo.
+
+        // DEPÓSITO DE VUELTO (Rectángulo negro inferior derecho)
         ArrayList<Moneda> monedas = exp.getDepositoVuelto().getLista();
         for (int i = 0; i < monedas.size(); i++) {
-            monedas.get(i).setXY(this.x + 30 + (i * 10), this.y + this.alto - 60);
+            monedas.get(i).setXY(this.x + 450 + (i * 5), this.y + 600);
         }
 
-        // Reposicionar el producto del depósito de despacho (esquina inferior derecha)
+        // DEPÓSITO DE DESPACHO (Rectángulo negro inferior izquierdo)
         Producto pDespacho = exp.getProducto();
         if (pDespacho != null) {
-            pDespacho.setXY(this.x + this.ancho - 80, this.y + this.alto - 100);
-            // Lo devolvemos al modelo (ya que getProducto lo remueve temporalmente)
-            // Esto es un parche visual simple para que se dibuje
-            // En la versión final, esto requiere que el comprador haga click para sacarlo.
+            pDespacho.setXY(this.x + 200, this.y + 600);
         }
     }
 
     /**
-     * Metodo auxiliar para iterar y posicionar una lista de productos en una fila.
+     * Metodo auxiliar para iterar y posicionar una lista de productos en su panel.
      */
     private void asignarCoordenadas(ArrayList<Producto> lista, int inicioX, int inicioY, int separacionX) {
         for (int i = 0; i < lista.size(); i++) {
@@ -102,40 +112,38 @@ public class PanelExpendedor extends JPanel {
         }
     }
 
-    /**
-     * Dibuja la máquina y solicita a los productos que se dibujen.
-     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Dibujar el chasis de la máquina
-        g.setColor(new Color(50, 50, 50));
-        g.fillRect(this.x, this.y, this.ancho, this.alto);
+        // 1. Dibujar tu máquina expendedora (Fondo)
+        if (this.imagenFondo != null) {
+            g.drawImage(this.imagenFondo, this.x, this.y, this.ancho, this.alto, null);
+        } else {
+            // Fondo de emergencia rojo si la imagen no carga
+            g.setColor(Color.RED);
+            g.fillRect(this.x, this.y, this.ancho, this.alto);
+        }
 
-        // Dibujar el "vidrio" principal
-        g.setColor(new Color(200, 230, 255, 50));
-        g.fillRect(this.x + 10, this.y + 10, this.ancho - 20, this.alto - 120);
-
-        // Dibujar el hueco de despacho
-        g.setColor(Color.BLACK);
-        g.fillRect(this.x + this.ancho - 100, this.y + this.alto - 110, 80, 80);
-
-        // Dibujar los productos en stock
+        // 2. Dibujar los productos ENCIMA del fondo
         dibujarLista(exp.getDepositoCocaCola().getLista(), g);
         dibujarLista(exp.getDepositoSprite().getLista(), g);
         dibujarLista(exp.getDepositoFanta().getLista(), g);
         dibujarLista(exp.getDepositoSnickers().getLista(), g);
         dibujarLista(exp.getDepositoSuper8().getLista(), g);
 
-        // Dibujar monedas de vuelto
-        for (Moneda m : exp.getDepositoVuelto().getLista()) m.paintComponent(g);
+        // 3. Dibujar las monedas de vuelto
+        for (Moneda m : exp.getDepositoVuelto().getLista()) {
+            m.paintComponent(g);
+        }
     }
 
     /**
-     * Auxiliar para pintar listas de productos.
+     * Auxiliar para pintar listas de productos y mantener el código limpio.
      */
     private void dibujarLista(ArrayList<Producto> lista, Graphics g) {
-        for (Producto p : lista) p.paintComponent(g);
+        for (Producto p : lista) {
+            p.paintComponent(g);
+        }
     }
 }
