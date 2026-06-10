@@ -31,6 +31,19 @@ public abstract class Producto {
         this.y = y;
     }
     /**
+     * Obtiene la coordenada X actual del producto.
+     */
+    public int getX() {
+        return this.x;
+    }
+
+    /**
+     * Obtiene la coordenada Y actual del producto.
+     */
+    public int getY() {
+        return this.y;
+    }
+    /**
      * Dibuja la representación gráfica del objeto en la ventana
      * * @param g Contexto gráfico proporcionado por Swing.
      */

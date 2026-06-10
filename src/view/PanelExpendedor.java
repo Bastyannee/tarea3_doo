@@ -139,11 +139,13 @@ public class PanelExpendedor extends JPanel {
     }
 
     /**
-     * Auxiliar para pintar listas de productos y mantener el código limpio.
+     * Auxiliar para pintar listas de productos.
+     * Dibuja desde el último al primero para que el producto de adelante
+     * no sea tapado por los de atrás (corrige la superposición).
      */
     private void dibujarLista(ArrayList<Producto> lista, Graphics g) {
-        for (Producto p : lista) {
-            p.paintComponent(g);
+        for (int i = lista.size() - 1; i >= 0; i--) {
+            lista.get(i).paintComponent(g);
         }
     }
 }
