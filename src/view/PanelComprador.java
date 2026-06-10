@@ -8,34 +8,65 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Componente de interfaz gráfica que representa el panel de control interactivo del comprador dentro de la simulación de la máquina expendedora.
+ * Hereda de JPanel. Administra visualmente el dinero del monedero, el catálogo de opciones y las gavetas de retiro. Además, procesa las coordenadas de clics para delegar eventos de compra a las clases de lógica subyacentes.
+ */
 public class PanelComprador extends JPanel {
 
+    /** Instancia del expendedor al cual se conectan las transacciones del panel. */
     private final Expendedor exp;
+
+    /** Instancia del comprador dueño del dinero y destinatario de los productos. */
     private final Comprador  comprador;
 
+    /** Moneda virtual actualmente retenida en memoria tras ser seleccionada para el pago. */
     private Moneda monedaEnMano = null;
+
+    /** Índice numérico que mapea la moneda seleccionada con los arreglos de datos constantes. */
     private int idxMonedaSel = -1;
+
+    /** Índice numérico que mapea el producto seleccionado con el catálogo disponible. */
     private int idxProductoSel = -1;
+
+    /** Almacena la referencia del artículo comprado mientras permanece en la bandeja física de retiro. */
     private Producto productoListo = null;
+
+    /** Colección local de monedas que emula la gaveta física donde se deposita el vuelto. */
     private final List<Moneda> cajVuelto = new ArrayList<>();
+
+    /** Cadena de texto dinámica proyectada en tiempo real en la barra informativa inferior. */
     private String estado = "Seleccione una moneda y luego un producto.";
 
-    // Variable para controlar si el usuario está en el paso de confirmación
+    /** Bandera de control que habilita un sistema de confirmación de compra mediante doble pulsación. */
     private boolean esperandoConfirmacion = false;
 
+    /** Colección estática con el orden de los enumeradores de tipos de productos ofrecidos. */
     private static final TipoProducto[] TIPOS  = {
             TipoProducto.COCA_COLA, TipoProducto.SPRITE, TipoProducto.FANTA,
             TipoProducto.SUPER8, TipoProducto.SNICKERS
     };
+
+    /** Nombres comerciales textuales vinculados estrictamente con el arreglo de tipos. */
     private static final String[] NOMBRES = {
             "Coca-Cola", "Sprite", "Fanta", "Super 8", "Snickers"
     };
+
+    /** Valores enteros asociados con las monedas admitidas en el monedero. */
     private static final int[]    DENOM   = {100, 500, 1000};
+
+    /** Etiquetas de formato monetario para proyectar en pantalla. */
     private static final String[] ETIQ_M  = {"$100", "$500", "$1.000"};
 
+    /**
+     * Recursos Gráficos del Componente
+     */
     private Image imgMoneda100, imgMoneda500, imgMoneda1000;
     private Image imgCoca, imgSprite, imgFanta, imgSnickers;
 
+    /**
+     * Definición de la Paleta de Colores de la UI
+     */
     private static final Color METAL_LIGHT = new Color(228, 232, 235);
     private static final Color METAL_DARK = new Color(165, 174, 182);
     private static final Color BORDE = new Color(105, 112, 118);
@@ -44,8 +75,18 @@ public class PanelComprador extends JPanel {
     private static final Color MSG_OK = new Color(255, 255, 255);
     private static final Color MSG_ERR = new Color(255, 80, 80);
 
+    /** Nombre tipográfico unificado para las leyendas del panel. */
     private static final String FONT_NAME = "SansSerif";
 
+    /**
+     * Construye e inicializa un nuevo panel contenedor para la experiencia del comprador.
+     * @param x Coordenada de origen horizontal respecto al contenedor padre.
+     * @param y Coordenada de origen vertical respecto al contenedor padre.
+     * @param ancho Ancho absoluto asignado en píxeles.
+     * @param alto Alto absoluto asignado en píxeles.
+     * @param exp Manejador principal de la lógica del expendedor.
+     * @param comprador Instancia de entidad que opera los fondos monetarios.
+     */
     public PanelComprador(int x, int y, int ancho, int alto,
                           Expendedor exp, Comprador comprador) {
         this.exp = exp;
@@ -58,6 +99,9 @@ public class PanelComprador extends JPanel {
         setLayout(null);
     }
 
+    /**
+     * Recupera de forma segura los mapas de bits requeridos desde la carpeta interna de recursos.
+     */
     private void cargarImagenes() {
         try {
             imgMoneda100 = new ImageIcon(getClass().getResource("/resources/Moneda100.png")).getImage();
@@ -73,6 +117,13 @@ public class PanelComprador extends JPanel {
         }
     }
 
+    /**
+     * Determina el elemento colisionado por el puntero del ratón mediante coordenadas relativas.
+     * Evalúa las áreas reactivas del monedero, catálogo de botones de acción y gavetas físicas.
+     * Modifica las variables de estado y solicita el redibujo completo del panel en pantalla.
+     * @param lx Coordenada del eje horizontal del clic.
+     * @param ly Coordenada del eje vertical del clic.
+     */
     public void procesarClick(int lx, int ly) {
         int W = getWidth();
         int H = getHeight();
@@ -80,7 +131,9 @@ public class PanelComprador extends JPanel {
         int margin = (int)(W * 0.05);
         int cardW = W - (2 * margin);
 
-        // Si estaba esperando confirmación y el usuario hace clic en otro lado, se cancela
+        /**
+         * Si estaba esperando confirmación y el usuario hace clic en otro lado, se cancela
+         */
         if (esperandoConfirmacion && !(ly >= 220 && ly < 260 && lx >= margin && lx < W - margin)) {
             esperandoConfirmacion = false;
             estado = "Operación cancelada. Elige un producto.";
@@ -153,6 +206,10 @@ public class PanelComprador extends JPanel {
         }
     }
 
+    /**
+     * Gestiona las fases condicionales del botón de compra.
+     * Valida que se cumplan las precondiciones esenciales de pago y artículo. En el primer toque activa el estado transitorio de confirmación. Si se pulsa inmediatamente después, confirma la orden disparando la inserción monetaria real.
+     */
     private void gestionarBotonCompra() {
         if (monedaEnMano == null) {
             estado = "Primero selecciona una moneda o billete.";
@@ -164,15 +221,18 @@ public class PanelComprador extends JPanel {
         }
 
         if (!esperandoConfirmacion) {
-            // Primer paso: activamos la confirmación y cambiamos el texto
             esperandoConfirmacion = true;
             estado = "¿Estás seguro de comprar " + NOMBRES[idxProductoSel] + " por " + ETIQ_M[idxMonedaSel] + "?";
         } else {
-            // Segundo paso: el usuario presionó de nuevo, ejecutamos la compra real
             accionInsertar();
         }
     }
 
+    /**
+     * Ejecuta el proceso definitivo de compra acoplando la interfaz con las reglas de negocio.
+     * Se encarga de debitar el dinero físico del comprador e ingresarlo al expendedor.
+     * Implementa bloques de captura de errores para procesar excepciones lógicas como fallas de stock, monedas inválidas o saldo insuficiente, asegurando la devolución pertinente del vuelto.
+     */
     private void accionInsertar() {
         Moneda mReal = comprador.descontarMoneda(DENOM[idxMonedaSel]);
         if (mReal == null) {
@@ -205,6 +265,9 @@ public class PanelComprador extends JPanel {
         esperandoConfirmacion = false; // Finaliza el flujo
     }
 
+    /**
+     * Retira la totalidad de las monedas depositadas en la gaveta del vuelto local y las reincorpora de manera permanente al saldo disponible del monedero del comprador.
+     */
     private void accionRecogerVuelto() {
         if (cajVuelto.isEmpty()) {
             estado = "La gaveta de vuelto está vacía.";
@@ -216,6 +279,9 @@ public class PanelComprador extends JPanel {
         estado = "Vuelto retirado: $" + total + ".  Saldo actual: $" + comprador.getSaldo();
     }
 
+    /**
+     * Extrae el producto disponible en la bandeja intermedia de entrega física, transfiriéndolo con éxito al inventario del comprador.
+     */
     private void accionRecogerProducto() {
         if (productoListo == null) {
             estado = "No hay productos en la bandeja de retiro.";
@@ -227,19 +293,36 @@ public class PanelComprador extends JPanel {
         idxProductoSel = -1;
     }
 
+    /**
+     * Vacía el depósito de vuelto lógico interno de la máquina expendedora, traspasando las monedas una a una al almacenamiento temporal visible de este panel.
+     */
     private void vaciarVueltoExpendedor() {
         Moneda v;
         while ((v = exp.getVuelto()) != null) cajVuelto.add(v);
     }
 
+    /**
+     * Examina el monedero del comprador filtrando y contando la cantidad de objetos moneda que igualan un valor específico.
+     * @param valor Denominación entera a contabilizar.
+     * @return Monto total de ocurrencias encontradas.
+     */
     private long cantMoneda(int valor) {
         return comprador.getMonedas().stream().filter(m -> m.getValor() == valor).count();
     }
 
+    /**
+     * Suma acumulativa de las denominaciones numéricas de las monedas presentes en la gaveta.
+     * @return Suma neta del capital total de vuelto disponible.
+     */
     private int totalVuelto() {
         return cajVuelto.stream().mapToInt(Moneda::getValor).sum();
     }
 
+    /**
+     * Factoría de generación instantánea de tipos concretos de moneda basados en un entero.
+     * @param valor Denominación objetivo.
+     * @return Instancia concreta derivada de Moneda.
+     */
     private Moneda crearMoneda(int valor) {
         switch (valor) {
             case 100: return new Moneda100();
@@ -248,6 +331,10 @@ public class PanelComprador extends JPanel {
         }
     }
 
+    /**
+     * Intercepta el ciclo estándar de pintado de Swing para componer la UI a través del motor gráfico.
+     * @param g Lienzo gráfico primitivo inyectado por el sistema de ventanas.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -278,6 +365,12 @@ public class PanelComprador extends JPanel {
         pintarBarraEstado(g2, W, H);
     }
 
+    /**
+     * Métodos de renderizado internos y auxiliares de dibujo
+     * @param g2 El objeto de Graphics2D utilizado para pintar.
+     * @param margin Margen de seguridad lateral izquierdo medido en píxeles para alinear el bloque general.
+     * @param cardW Ancho total utilizable medido en píxeles asignado a la tarjeta contenedora del panel.
+     */
     private void pintarSeccionMonedas(Graphics2D g2, int margin, int cardW) {
         card(g2, margin, 12, cardW, 190);
 
@@ -346,7 +439,6 @@ public class PanelComprador extends JPanel {
 
         GradientPaint alum;
         if (esperandoConfirmacion) {
-            // Tono verde/azulado oscuro indicando que requiere confirmación
             alum = new GradientPaint(margin, bY, new Color(16, 54, 45), margin, bY + bH, new Color(34, 94, 75));
         } else if (listo) {
             alum = new GradientPaint(margin, bY, new Color(10, 26, 46), margin, bY + bH, new Color(24, 58, 96));
@@ -362,7 +454,6 @@ public class PanelComprador extends JPanel {
         g2.setColor(listo ? Color.WHITE : Color.DARK_GRAY);
         g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
 
-        // Construcción dinámica del mensaje solicitado
         String txt;
         if (esperandoConfirmacion) {
             txt = "¿ESTÁS SEGURO DE COMPRAR " + NOMBRES[idxProductoSel].toUpperCase() + " POR " + ETIQ_M[idxMonedaSel] + "?";
