@@ -133,7 +133,7 @@ classDiagram
         - Deposito~Moneda~ depIngresos
         - Producto depositoDespacho
         + Expendedor(int)
-        + comprarProducto(Moneda, TipoProducto)
+        + comprarProducto(Moneda, TipoProducto) Producto
         + getVuelto() Moneda
         + getProducto() Producto
         + peekProducto() Producto
@@ -216,4 +216,33 @@ classDiagram
     Moneda <|-- Moneda1000
     Moneda <|-- Moneda500
     Moneda <|-- Moneda100
+
+    %% ==========================================
+    %% PAQUETE LOGICA.EXCEPTIONS
+    %% ==========================================
+    class Exception {
+        <<class>>
+    }
+
+    class PagoIncorrectoException {
+        <<exception>>
+    }
+    
+    class PagoInsuficienteException {
+        <<exception>>
+    }
+    
+    class NoHayProductoException {
+        <<exception>>
+    }
+
+    %% Relación de herencia con Exception de Java
+    Exception <|-- PagoIncorrectoException
+    Exception <|-- PagoInsuficienteException
+    Exception <|-- NoHayProductoException
+
+    %% Dependencia del Expendedor hacia las excepciones que lanza
+    Expendedor ..> PagoIncorrectoException : throws
+    Expendedor ..> PagoInsuficienteException : throws
+    Expendedor ..> NoHayProductoException : throws
 ```
