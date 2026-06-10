@@ -107,4 +107,18 @@ public class Expendedor {
     public Producto peekProducto() {
         return this.depositoDespacho;
     }
+    public void rellenarDepositosVaciados(int cantidad) {
+        if (coca.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) coca.add(new CocaCola(100 + i));
+        if (sprite.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) sprite.add(new Sprite(200 + i));
+        if (fanta.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) fanta.add(new Fanta(300 + i));
+        if (snickers.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) snickers.add(new Snickers(400 + i));
+        if (super8.getLista().isEmpty()) for (int i = 0; i < cantidad; i++) super8.add(new Super8(500 + i));
+    }
+
+    public Deposito<Producto> getDepositoCocaCola() { return this.coca; }
+    public Deposito<Producto> getDepositoSprite() { return this.sprite; }
+    public Deposito<Producto> getDepositoFanta() { return this.fanta; }
+    public Deposito<Producto> getDepositoSnickers() { return this.snickers; }
+    public Deposito<Producto> getDepositoSuper8() { return this.super8; }
+    public Deposito<Moneda> getDepositoVuelto() { return this.depVuelto; }
 }

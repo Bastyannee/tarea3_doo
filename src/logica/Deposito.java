@@ -44,4 +44,10 @@ public class Deposito<T> {
         // Se extrae el elemento en el índice 0 simulando una cola (FIFO).
         return this.items.remove(0);
     }
+    /**
+     * Obtiene la lista interna de elementos almacenados en el depósito.
+     */
+    public ArrayList<T> getLista() {
+        return this.items;
+    }
 }

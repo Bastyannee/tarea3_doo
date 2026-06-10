@@ -36,9 +36,15 @@ public class PanelExpendedor extends JPanel {
 
         // PASO 2: Cargar la imagen de fondo desde la carpeta que creamos
         try {
-            this.imagenFondo = ImageIO.read(new File("imagenes/maquinaexpendedora.png"));
-        } catch (IOException e) {
-            System.out.println("No se pudo cargar la imagen maquina.png");
+            java.net.URL url = getClass().getResource("/resources/maquinaexpendedora.png");
+            if (url != null) {
+                this.imagenFondo = ImageIO.read(url);
+            } else {
+                File f = new File("src/resources/maquinaexpendedora.png");
+                if(f.exists()) this.imagenFondo = ImageIO.read(f);
+            }
+        } catch (Exception e) {
+            System.err.println("Advertencia: No se encontró la imagen maquinaexpendedora.png");
         }
 
         // PASO 3: Posicionar los productos en la imagen
