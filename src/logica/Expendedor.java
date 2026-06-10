@@ -100,4 +100,11 @@ public class Expendedor {
     public Moneda getVuelto() {
         return depVuelto.get();
     }
+    /**
+     * Observa el producto en el depósito de despacho sin retirarlo.
+     * @return El Producto despachado, o null si está vacío.
+     */
+    public Producto peekProducto() {
+        return this.depositoDespacho;
+    }
 }

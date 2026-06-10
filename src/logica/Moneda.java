@@ -1,12 +1,17 @@
 package logica;
-
+import java.awt.Graphics;
+import java.awt.Color;
 
 /**
  * Clase abstracta que representa un medio de pago genérico.
  * Gestiona el identificador único basado en la dirección de memoria.
  */
 public abstract class Moneda implements Comparable<Moneda> {
-    
+    /** Coordenada X para la representación gráfica en la ventana. */
+    private int x;
+
+    /** Coordenada Y para la representación gráfica en la ventana. */
+    private int y;
     /**
      * Constructor por defecto.
      */
@@ -21,6 +26,38 @@ public abstract class Moneda implements Comparable<Moneda> {
      */
     public int getSerie() {
         return this.hashCode();
+    }
+
+    /**
+     * Establece las coordenadas espaciales del elemento en la interfaz gráfica.
+     * Esto permite reposicionar el objeto dentro de los depósitos[cite: 75].
+     * * @param x La nueva coordenada X relativa al panel contenedor.
+     * @param y La nueva coordenada Y relativa al panel contenedor.
+     */
+    public void setXY(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    /**
+     * Dibuja la representación gráfica del objeto en la ventana[cite: 14].
+     * * @param g Contexto gráfico proporcionado por Swing.
+     */
+    public void paintComponent(Graphics g) {
+        if (this.getValor() == 100) g.setColor(new Color(205, 127, 50)); // Bronce
+        else if (this.getValor() == 500) g.setColor(new Color(192, 192, 192)); // Plata
+        else if (this.getValor() == 1000) g.setColor(new Color(255, 215, 0)); // Oro
+        else g.setColor(Color.GREEN);
+
+        g.fillOval(this.x, this.y, 30, 30);
+        
+        g.setColor(Color.BLACK);
+        g.drawOval(this.x, this.y, 30, 30);
+        
+        // Dibujar número de serie truncado para que quepa en la moneda
+        g.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 9));
+        String serie = String.valueOf(Math.abs(this.getSerie()));
+        g.drawString(serie.substring(0, Math.min(4, serie.length())), this.x + 3, this.y + 18);
     }
 
     /**

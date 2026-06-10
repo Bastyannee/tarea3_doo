@@ -1,10 +1,14 @@
 package logica;
+import java.awt.Graphics;
+import java.awt.Color;
 
 /**
  * Clase abstracta base que representa cualquier ítem que pueda ser vendido en el Expendedor.
  * Define la estructura fundamental de almacenamiento de serie y consumo.
  */
 public abstract class Producto {
+    private int x;
+    private int y;
     /** Número de serie único para identificar la instancia en memoria. */
     private int serie;
 
@@ -16,7 +20,50 @@ public abstract class Producto {
     public Producto(int serie) {
         this.serie = serie;
     }
+    /**
+     * Establece las coordenadas espaciales del elemento en la interfaz gráfica.
+     * Esto permite reposicionar el objeto dentro de los depósitos[cite: 75].
+     * * @param x La nueva coordenada X relativa al panel contenedor.
+     * @param y La nueva coordenada Y relativa al panel contenedor.
+     */
+    public void setXY(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+    /**
+     * Obtiene la coordenada X actual del producto.
+     */
+    public int getX() {
+        return this.x;
+    }
 
+    /**
+     * Obtiene la coordenada Y actual del producto.
+     */
+    public int getY() {
+        return this.y;
+    }
+    /**
+     * Dibuja la representación gráfica del objeto en la ventana
+     * * @param g Contexto gráfico proporcionado por Swing.
+     */
+    public void paintComponent(Graphics g) {
+        String tipo = this.consumir();
+        if (tipo.equals("cocacola")) g.setColor(Color.RED);
+        else if (tipo.equals("sprite")) g.setColor(Color.GREEN);
+        else if (tipo.equals("fanta")) g.setColor(Color.ORANGE);
+        else if (tipo.equals("snickers")) g.setColor(new Color(139, 69, 19));
+        else if (tipo.equals("super8")) g.setColor(Color.YELLOW);
+        
+        g.fillRect(this.x, this.y, 40, 60);
+        
+        g.setColor(Color.BLACK);
+        g.drawRect(this.x, this.y, 40, 60);
+        
+        // Dibujar número de serie
+        g.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 10));
+        g.drawString(String.valueOf(this.getSerie()), this.x + 5, this.y + 30);
+    }
     /**
      * Simula el consumo del producto.
      * 
