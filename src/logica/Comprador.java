@@ -11,7 +11,7 @@ public class Comprador {
     private int saldo;
     private List<Moneda> monedas;
     private List<Producto> productos;
-    private static final int saldo_inicial = 5000;
+    private static final int saldo_inicial = 3300;
 
     /**
      * Construye un comprador con saldo inicial y monedero con monedas de ejemplo.
@@ -21,16 +21,13 @@ public class Comprador {
         this.monedas = new ArrayList<>();
         this.productos = new ArrayList<>();
 
-        monedas.add(new Moneda(1000));
-        monedas.add(new Moneda(1000));
-        monedas.add(new Moneda(500));
-        monedas.add(new Moneda(500));
-        monedas.add(new Moneda(100));
-        monedas.add(new Moneda(100));
-        monedas.add(new Moneda(100));
-        monedas.add(new Moneda(50));
-        monedas.add(new Moneda(50));
-        monedas.add(new Moneda(10));
+        monedas.add(new Moneda1000());
+        monedas.add(new Moneda1000());
+        monedas.add(new Moneda500());
+        monedas.add(new Moneda500());
+        monedas.add(new Moneda100());
+        monedas.add(new Moneda100());
+        monedas.add(new Moneda100());
     }
 
     /**
