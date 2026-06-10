@@ -1,6 +1,5 @@
 # Tarea 3: Máquina Expendedora 2D
  
-
 ---
 
 ## Equipo de Desarrollo y Distribución de Tareas
@@ -47,6 +46,7 @@ El código fuente respeta una estricta separación de responsabilidades (MVC):
 
 ## Diagrama de Clases (UML)
 
+```mermaid
 classDiagram
     direction TB
 
@@ -216,3 +216,4 @@ classDiagram
     Moneda <|-- Moneda1000
     Moneda <|-- Moneda500
     Moneda <|-- Moneda100
+```
