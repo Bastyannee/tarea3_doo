@@ -1,8 +1,3 @@
-/*
-* Nota: falta agregar las imagenes al producto super8 y snickers.
-* Falta documentar.
- */
-
 package view;
 
 import logica.*;
@@ -25,6 +20,9 @@ public class PanelComprador extends JPanel {
     private final List<Moneda> cajVuelto = new ArrayList<>();
     private String estado = "Seleccione una moneda y luego un producto.";
 
+    // Variable para controlar si el usuario está en el paso de confirmación
+    private boolean esperandoConfirmacion = false;
+
     private static final TipoProducto[] TIPOS  = {
             TipoProducto.COCA_COLA, TipoProducto.SPRITE, TipoProducto.FANTA,
             TipoProducto.SUPER8, TipoProducto.SNICKERS
@@ -36,24 +34,17 @@ public class PanelComprador extends JPanel {
     private static final String[] ETIQ_M  = {"$100", "$500", "$1.000"};
 
     private Image imgMoneda100, imgMoneda500, imgMoneda1000;
-
     private Image imgCoca, imgSprite, imgFanta, imgSnickers;
 
-    private static final Color BG_PREMIUM = new Color(244, 247, 251);
-    private static final Color CARD = Color.WHITE;
-    private static final Color BORDE = new Color(205, 215, 230);
-    private static final Color AZUL_TEXTO = new Color(18, 38, 75);
-    private static final Color DISPLAY_BG = new Color(12, 22, 45);
-    private static final Color DISPLAY_FG = new Color(0, 210, 255);
-    private static final Color BTN_INS = new Color(30, 95, 215);
-    private static final Color BTN_VUE_SI = new Color(34, 160, 75);
-    private static final Color BTN_VUE_NO = new Color(185, 195, 185);
-    private static final Color BTN_PRD_SI = new Color(220, 90, 25);
-    private static final Color BTN_PRD_NO = new Color(200, 200, 200);
-    private static final Color MSG_OK = new Color(20, 130, 70);
-    private static final Color MSG_ERR = new Color(190, 35, 35);
+    private static final Color METAL_LIGHT = new Color(228, 232, 235);
+    private static final Color METAL_DARK = new Color(165, 174, 182);
+    private static final Color BORDE = new Color(105, 112, 118);
+    private static final Color DISPLAY_BG = new Color(16, 32, 42);
+    private static final Color DISPLAY_FG = new Color(0, 240, 255);
+    private static final Color MSG_OK = new Color(255, 255, 255);
+    private static final Color MSG_ERR = new Color(255, 80, 80);
 
-    private static final String FONT_NAME = "Tahoma";
+    private static final String FONT_NAME = "SansSerif";
 
     public PanelComprador(int x, int y, int ancho, int alto,
                           Expendedor exp, Comprador comprador) {
@@ -89,6 +80,13 @@ public class PanelComprador extends JPanel {
         int margin = (int)(W * 0.05);
         int cardW = W - (2 * margin);
 
+        // Si estaba esperando confirmación y el usuario hace clic en otro lado, se cancela
+        if (esperandoConfirmacion && !(ly >= 220 && ly < 260 && lx >= margin && lx < W - margin)) {
+            esperandoConfirmacion = false;
+            estado = "Operación cancelada. Elige un producto.";
+            repaint();
+        }
+
         int monW = (int)(cardW * 0.28);
         int gapM = (int)(cardW * 0.04);
         int monY = 65;
@@ -113,7 +111,8 @@ public class PanelComprador extends JPanel {
         int insY = 220;
         int insH = 40;
         if (ly >= insY && ly < insY + insH && lx >= margin && lx < W - margin) {
-            accionInsertar();
+            // Manejamos el flujo del botón mediante un método dedicado
+            gestionarBotonCompra();
             repaint();
             return;
         }
@@ -121,7 +120,7 @@ public class PanelComprador extends JPanel {
         int prodCardY = 385;
         int prodW = (int)(cardW * 0.28);
         int gapP = (int)(cardW * 0.04);
-        int prodH = 75;
+        int prodH = 82;
 
         for (int i = 0; i < 5; i++) {
             int col = i % 3;
@@ -137,9 +136,9 @@ public class PanelComprador extends JPanel {
             }
         }
 
-        int baseY = H - 120;
+        int baseY = H - 145;
         int btnH1 = 38;
-        int btnH2 = 34;
+        int btnH2 = 38;
 
         if (ly >= baseY && ly < baseY + btnH1 && lx >= margin && lx < W - margin) {
             accionRecogerVuelto();
@@ -147,14 +146,14 @@ public class PanelComprador extends JPanel {
             return;
         }
 
-        int prdY = baseY + btnH1 + 8;
+        int prdY = baseY + btnH1 + 10;
         if (ly >= prdY && ly < prdY + btnH2 && lx >= margin && lx < W - margin) {
             accionRecogerProducto();
             repaint();
         }
     }
 
-    private void accionInsertar() {
+    private void gestionarBotonCompra() {
         if (monedaEnMano == null) {
             estado = "Primero selecciona una moneda o billete.";
             return;
@@ -164,11 +163,23 @@ public class PanelComprador extends JPanel {
             return;
         }
 
+        if (!esperandoConfirmacion) {
+            // Primer paso: activamos la confirmación y cambiamos el texto
+            esperandoConfirmacion = true;
+            estado = "¿Estás seguro de comprar " + NOMBRES[idxProductoSel] + " por " + ETIQ_M[idxMonedaSel] + "?";
+        } else {
+            // Segundo paso: el usuario presionó de nuevo, ejecutamos la compra real
+            accionInsertar();
+        }
+    }
+
+    private void accionInsertar() {
         Moneda mReal = comprador.descontarMoneda(DENOM[idxMonedaSel]);
         if (mReal == null) {
             estado = "No tienes fondos suficientes de " + ETIQ_M[idxMonedaSel];
             monedaEnMano = null;
             idxMonedaSel = -1;
+            esperandoConfirmacion = false;
             return;
         }
 
@@ -191,6 +202,7 @@ public class PanelComprador extends JPanel {
 
         monedaEnMano = null;
         idxMonedaSel = -1;
+        esperandoConfirmacion = false; // Finaliza el flujo
     }
 
     private void accionRecogerVuelto() {
@@ -246,10 +258,14 @@ public class PanelComprador extends JPanel {
         int W = getWidth();
         int H = getHeight();
 
-        g2.setColor(BG_PREMIUM);
+        GradientPaint brushedMetal = new GradientPaint(0, 0, METAL_LIGHT, W, 0, METAL_DARK);
+        g2.setPaint(brushedMetal);
         g2.fillRect(0, 0, W, H);
-        g2.setColor(BORDE);
-        g2.drawLine(W - 1, 0, W - 1, H);
+
+        g2.setColor(new Color(255, 255, 255, 35));
+        for (int i = 0; i < W; i += 5) {
+            g2.drawLine(i, 0, i, H);
+        }
 
         int margin = (int)(W * 0.05);
         int cardW  = W - (2 * margin);
@@ -263,123 +279,155 @@ public class PanelComprador extends JPanel {
     }
 
     private void pintarSeccionMonedas(Graphics2D g2, int margin, int cardW) {
-        card(g2, margin, 10, cardW, 195);
+        card(g2, margin, 12, cardW, 190);
 
-        g2.setColor(AZUL_TEXTO);
-        g2.setFont(new Font(FONT_NAME, Font.BOLD, 13));
-        g2.drawString("MONEDERO", margin + 12, 32);
-        g2.setColor(BORDE);
-        g2.drawLine(margin + 12, 40, margin + cardW - 12, 40);
+        g2.setColor(new Color(35, 42, 48));
+        g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
+        g2.drawString("⬜ EFECTIVO EN MONEDERO", margin + 14, 34);
 
         int monW = (int)(cardW * 0.28);
         int gapM = (int)(cardW * 0.04);
         int monY = 65;
-        int monH = 125;
 
         for (int i = 0; i < 3; i++) {
             int mx = margin + gapM + i * (monW + gapM);
             boolean sel = (idxMonedaSel == i);
             long cant = cantMoneda(DENOM[i]);
-            boolean tiene = cant > 0;
 
-            g2.setColor(sel ? new Color(225, 238, 255) : (tiene ? CARD : new Color(242, 244, 247)));
-            g2.fillRoundRect(mx, monY, monW, monH, 10, 10);
-            g2.setColor(sel ? BTN_INS : BORDE);
-            g2.setStroke(sel ? new BasicStroke(2f) : new BasicStroke(1f));
-            g2.drawRoundRect(mx, monY, monW, monH, 10, 10);
-            g2.setStroke(new BasicStroke(1f));
+            g2.setColor(new Color(36, 40, 44));
+            g2.fillRoundRect(mx, monY, monW, 125, 8, 8);
+            g2.setColor(new Color(18, 20, 22));
+            g2.drawRoundRect(mx, monY, monW, 125, 8, 8);
+
+            if (sel) {
+                g2.setColor(DISPLAY_FG);
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawRoundRect(mx - 1, monY - 1, monW + 2, 127, 9, 9);
+                g2.setStroke(new BasicStroke(1f));
+            }
 
             Image img = (i == 0) ? imgMoneda100 : (i == 1) ? imgMoneda500 : imgMoneda1000;
             if (img != null) {
-                if (!tiene) g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f));
-
+                if (cant == 0) {
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
+                }
                 if (DENOM[i] == 1000) {
-                    int bW = (int)(monW * 0.85);
+                    int bW = (int)(monW * 0.82);
                     int bH = (int)(bW / 1.75);
-                    g2.drawImage(img, mx + (monW - bW) / 2, monY + 18, bW, bH, null);
+                    g2.drawImage(img, mx + (monW - bW) / 2, monY + 22, bW, bH, null);
                 } else {
                     int size = (int)(monW * 0.65);
-                    g2.drawImage(img, mx + (monW - size) / 2, monY + 10, size, size, null);
+                    g2.drawImage(img, mx + (monW - size) / 2, monY + 12, size, size, null);
                 }
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             }
 
-            g2.setColor(tiene ? Color.DARK_GRAY : Color.LIGHT_GRAY);
+            g2.setColor(Color.LIGHT_GRAY);
             g2.setFont(new Font(FONT_NAME, Font.BOLD, 11));
             FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(ETIQ_M[i], mx + (monW - fm.stringWidth(ETIQ_M[i])) / 2, monY + 88);
+            g2.drawString(ETIQ_M[i], mx + (monW - fm.stringWidth(ETIQ_M[i])) / 2, monY + 92);
 
-            g2.setColor(tiene ? new Color(70, 80, 95) : Color.LIGHT_GRAY);
-            g2.fillRoundRect(mx + 10, monY + 98, monW - 20, 18, 6, 6);
+            g2.setColor(new Color(70, 78, 86));
+            g2.fillRoundRect(mx + 8, monY + 102, monW - 16, 16, 4, 4);
             g2.setColor(Color.WHITE);
             g2.setFont(new Font(FONT_NAME, Font.BOLD, 10));
-            fm = g2.getFontMetrics();
             String ct = "x" + cant;
-            g2.drawString(ct, mx + 10 + ((monW - 20) - fm.stringWidth(ct)) / 2, monY + 111);
+            g2.drawString(ct, mx + 8 + ((monW - 16) - g2.getFontMetrics().stringWidth(ct)) / 2, monY + 114);
         }
     }
 
     private void pintarBotonInsertar(Graphics2D g2, int margin, int cardW) {
-        int insY = 220;
-        int insH = 40;
+        int bY = 215;
+        int bH = 40;
         boolean listo = (monedaEnMano != null && idxProductoSel >= 0);
 
-        g2.setColor(listo ? BTN_INS : new Color(135, 150, 175));
-        g2.fillRoundRect(margin, insY, cardW, insH, 8, 8);
-        g2.setColor(Color.WHITE);
+        g2.setColor(new Color(85, 92, 98));
+        g2.drawRoundRect(margin - 1, bY - 1, cardW + 2, bH + 2, 8, 8);
+
+        GradientPaint alum;
+        if (esperandoConfirmacion) {
+            // Tono verde/azulado oscuro indicando que requiere confirmación
+            alum = new GradientPaint(margin, bY, new Color(16, 54, 45), margin, bY + bH, new Color(34, 94, 75));
+        } else if (listo) {
+            alum = new GradientPaint(margin, bY, new Color(10, 26, 46), margin, bY + bH, new Color(24, 58, 96));
+        } else {
+            alum = new GradientPaint(margin, bY, new Color(212, 216, 220), margin, bY + bH, new Color(148, 155, 162));
+        }
+        g2.setPaint(alum);
+        g2.fillRoundRect(margin, bY, cardW, bH, 7, 7);
+
+        g2.setColor(new Color(255, 255, 255, 120));
+        g2.drawLine(margin + 4, bY + 1, margin + cardW - 4, bY + 1);
+
+        g2.setColor(listo ? Color.WHITE : Color.DARK_GRAY);
         g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
-        String txt = listo ? "INGRESAR " + ETIQ_M[idxMonedaSel] + " E INICIAR COMPRA" : "Seleccione Dinero y Artículo";
+
+        // Construcción dinámica del mensaje solicitado
+        String txt;
+        if (esperandoConfirmacion) {
+            txt = "¿ESTÁS SEGURO DE COMPRAR " + NOMBRES[idxProductoSel].toUpperCase() + " POR " + ETIQ_M[idxMonedaSel] + "?";
+        } else if (listo) {
+            txt = "VAS A COMPRAR CON " + ETIQ_M[idxMonedaSel];
+        } else {
+            txt = "Seleccione Dinero y Artículo";
+        }
+
         FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(txt, margin + (cardW - fm.stringWidth(txt)) / 2, insY + insH / 2 + fm.getAscent() / 2 - 2);
+        g2.drawString(txt, margin + (cardW - fm.stringWidth(txt)) / 2, bY + bH / 2 + fm.getAscent() / 2 - 2);
     }
 
     private void pintarDisplaySaldo(Graphics2D g2, int margin, int cardW) {
-        int dY = 275;
-        card(g2, margin, dY, cardW, 95);
+        int dY = 268;
+        card(g2, margin, dY, cardW, 100);
 
-        g2.setColor(AZUL_TEXTO);
+        g2.setColor(new Color(35, 42, 48));
         g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
-        g2.drawString("SALDO", margin + 12, dY + 22);
-        g2.setColor(BORDE);
-        g2.drawLine(margin + 12, dY + 28, margin + cardW - 12, dY + 28);
+        g2.drawString("⬜ SALDO INTRODUCIDO", margin + 14, dY + 24);
 
         g2.setColor(DISPLAY_BG);
-        g2.fillRoundRect(margin + 12, dY + 36, cardW - 24, 46, 6, 6);
+        g2.fillRoundRect(margin + 12, dY + 38, cardW - 24, 48, 6, 6);
+
+        g2.setColor(new Color(255, 255, 255, 10));
+        int[] rx = { margin + 12, margin + (int)(cardW * 0.45), margin + (int)(cardW * 0.25), margin + 12 };
+        int[] ry = { dY + 38, dY + 38, dY + 86, dY + 86 };
+        g2.fillPolygon(rx, ry, 4);
+
         g2.setColor(DISPLAY_FG);
-        g2.setFont(new Font("Monospaced", Font.BOLD, 26));
+        g2.setFont(new Font("Monospaced", Font.BOLD, 28));
         String txt = "$ " + String.format("%,d", comprador.getSaldo()).replace(",", ".");
         FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(txt, margin + (cardW - fm.stringWidth(txt)) / 2, dY + 68);
+        g2.drawString(txt, margin + (cardW - fm.stringWidth(txt)) / 2, dY + 72);
     }
 
     private void pintarSeccionProductos(Graphics2D g2, int margin, int cardW) {
-        int prodCardY = 385;
-        card(g2, margin, prodCardY, cardW, 215);
+        int cY = 380;
+        card(g2, margin, cY, cardW, 225);
 
-        g2.setColor(AZUL_TEXTO);
-        g2.setFont(new Font(FONT_NAME, Font.BOLD, 13));
-        g2.drawString("PRODUCTOS DISPONIBLES", margin + 12, prodCardY + 24);
-        g2.setColor(BORDE);
-        g2.drawLine(margin + 12, prodCardY + 32, margin + cardW - 12, prodCardY + 32);
+        g2.setColor(new Color(35, 42, 48));
+        g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
+        g2.drawString("⬜ CATÁLOGO DE EXPENDEDOR", margin + 14, cY + 24);
 
-        Color[] coloresProd = {
-                new Color(225, 45, 45), new Color(15, 165, 80), new Color(240, 140, 15),
-                new Color(130, 50, 210), new Color(40, 110, 210)
+        Color[] colP = {
+                new Color(215, 30, 40), new Color(15, 155, 75), new Color(245, 125, 15),
+                new Color(115, 40, 185), new Color(25, 95, 195)
         };
 
         int prodW = (int)(cardW * 0.28);
         int gapP = (int)(cardW * 0.04);
-        int prodH = 75;
+        int prodH = 82;
 
         for (int i = 0; i < 5; i++) {
             int col = i % 3;
             int fila = i / 3;
             int bx = margin + gapP + col * (prodW + gapP);
-            int by = prodCardY + 45 + fila * (prodH + 12);
+            int by = cY + 45 + fila * (prodH + 12);
             boolean sel = (idxProductoSel == i);
 
-            g2.setColor(sel ? coloresProd[i] : coloresProd[i].darker());
+            g2.setColor(colP[i]);
             g2.fillRoundRect(bx, by, prodW, prodH, 8, 8);
+
+            g2.setColor(new Color(255, 255, 255, 70));
+            g2.drawLine(bx + 2, by + 1, bx + prodW - 2, by + 1);
 
             if (sel) {
                 g2.setColor(Color.WHITE);
@@ -389,77 +437,91 @@ public class PanelComprador extends JPanel {
             }
 
             Image img = (i == 0) ? imgCoca : (i == 1) ? imgSprite : (i == 2) ? imgFanta : (i == 4) ? imgSnickers : null;
-
             if (img != null) {
-                int imgW = (int)(prodW * 0.32);
-                int imgH = (int)(prodH * 0.48);
-                g2.drawImage(img, bx + (prodW - imgW) / 2, by + 6, imgW, imgH, null);
+                int iw = (int)(prodW * 0.35);
+                int ih = (int)(prodH * 0.45);
+                g2.drawImage(img, bx + (prodW - iw) / 2, by + 8, iw, ih, null);
 
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font(FONT_NAME, Font.BOLD, 10));
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(NOMBRES[i], bx + (prodW - fm.stringWidth(NOMBRES[i])) / 2, by + 52);
-            } else {
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font(FONT_NAME, Font.BOLD, 11));
                 FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(NOMBRES[i], bx + (prodW - fm.stringWidth(NOMBRES[i])) / 2, by + 30);
+                g2.drawString(NOMBRES[i], bx + (prodW - fm.stringWidth(NOMBRES[i])) / 2, by + 56);
+            } else {
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString(NOMBRES[i], bx + (prodW - fm.stringWidth(NOMBRES[i])) / 2, by + 40);
             }
 
-            g2.setColor(new Color(255, 255, 255, 220));
-            g2.setFont(new Font(FONT_NAME, Font.PLAIN, 9));
+            g2.setColor(new Color(255, 255, 255, 200));
+            g2.setFont(new Font(FONT_NAME, Font.PLAIN, 10));
             FontMetrics fm = g2.getFontMetrics();
-            String p = "$" + TIPOS[i].getPrecio();
-            g2.drawString(p, bx + (prodW - fm.stringWidth(p)) / 2, by + 66);
+            String pr = "$" + TIPOS[i].getPrecio();
+            g2.drawString(pr, bx + (prodW - fm.stringWidth(pr)) / 2, by + 72);
         }
     }
 
     private void pintarBotonesAccion(Graphics2D g2, int margin, int cardW, int H) {
-        int baseY = H - 120;
-        int btnH1 = 38;
-        int btnH2 = 34;
-        int tv = totalVuelto();
+        int baseY = H - 145;
+        int bH = 38;
 
-        g2.setColor(tv > 0 ? BTN_VUE_SI : BTN_VUE_NO);
-        g2.fillRoundRect(margin, baseY, cardW, btnH1, 8, 8);
-        g2.setColor(Color.WHITE);
+        pintarRanuraMecanica(g2, margin, baseY, cardW, bH,
+                cajVuelto.isEmpty() ? "GAVETA DE VUELTO VACÍA" : "RETIRAR VUELTO ($" + totalVuelto() + ")", !cajVuelto.isEmpty());
+
+        pintarRanuraMecanica(g2, margin, baseY + 46, cardW, bH,
+                productoListo == null ? "BANDEJA DE RETIRO VACÍA" : "RETIRAR PRODUCTO: " + productoListo.getClass().getSimpleName().toUpperCase(), productoListo != null);
+    }
+
+    private void pintarRanuraMecanica(Graphics2D g2, int mx, int my, int mw, int mh, String text, boolean activo) {
+        GradientPaint shadowDrop;
+        if (activo) {
+            shadowDrop = new GradientPaint(mx, my, new Color(15, 18, 22), mx, my + mh, new Color(42, 48, 54));
+        } else {
+            shadowDrop = new GradientPaint(mx, my, new Color(105, 110, 115), mx, my + mh, new Color(185, 190, 195));
+        }
+        g2.setPaint(shadowDrop);
+        g2.fillRoundRect(mx, my, mw, mh, 6, 6);
+
+        g2.setColor(activo ? new Color(5, 8, 12) : new Color(55, 60, 65));
+        g2.drawRoundRect(mx, my, mw, mh, 6, 6);
+
+        if (activo) {
+            g2.setColor(DISPLAY_FG);
+            g2.fillRect(mx + (mw - 40) / 2, my + mh - 4, 40, 2);
+        }
+
+        g2.setColor(activo ? Color.WHITE : new Color(55, 65, 70));
         g2.setFont(new Font(FONT_NAME, Font.BOLD, 12));
-        String txtV = tv > 0 ? "RETIRAR VUELTO DE ($" + tv + ")" : "GAVETA DE VUELTO VACÍA";
         FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(txtV, margin + (cardW - fm.stringWidth(txtV)) / 2, baseY + btnH1 / 2 + fm.getAscent() / 2 - 2);
-
-        int prdY = baseY + btnH1 + 8;
-        boolean hayProd = productoListo != null;
-        g2.setColor(hayProd ? BTN_PRD_SI : BTN_PRD_NO);
-        g2.fillRoundRect(margin, prdY, cardW, btnH2, 8, 8);
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font(FONT_NAME, Font.BOLD, 11));
-        String txtP = hayProd ? "RETIRAR PRODUCTO: " + productoListo.getClass().getSimpleName().toUpperCase() : "BANDEJA DE RETIRO VACÍA";
-        fm = g2.getFontMetrics();
-        g2.drawString(txtP, margin + (cardW - fm.stringWidth(txtP)) / 2, prdY + btnH2 / 2 + fm.getAscent() / 2 - 2);
+        g2.drawString(text, mx + (mw - fm.stringWidth(text)) / 2, my + mh / 2 + fm.getAscent() / 2 - 1);
     }
 
     private void pintarBarraEstado(Graphics2D g2, int W, int H) {
-        int sy = H - 24;
-        g2.setColor(new Color(230, 235, 245));
-        g2.fillRect(0, sy, W, 24);
-        g2.setColor(BORDE);
-        g2.drawLine(0, sy, W, sy);
+        int sY = H - 26;
+        g2.setColor(new Color(12, 70, 100));
+        g2.fillRect(0, sY, W, 26);
+        g2.setColor(new Color(6, 45, 70));
+        g2.drawLine(0, sY, W, sY);
 
         boolean err = estado.startsWith("No ") || estado.startsWith("Primero")
                 || estado.contains("insuficiente") || estado.contains("Sin stock")
-                || estado.contains("Error");
+                || estado.contains("Error") || estado.contains("cancelada");
         g2.setColor(err ? MSG_ERR : MSG_OK);
         g2.setFont(new Font(FONT_NAME, Font.PLAIN, 11));
-        g2.drawString("ℹ️ " + estado, 12, sy + 16);
+        g2.drawString("ℹ️ " + estado, 14, sY + 17);
     }
 
     private void card(Graphics2D g2, int cx, int cy, int cw, int ch) {
-        g2.setColor(new Color(0, 0, 0, 12));
-        g2.fillRoundRect(cx + 1, cy + 3, cw, ch, 12, 12);
-        g2.setColor(CARD);
-        g2.fillRoundRect(cx, cy, cw, ch, 12, 12);
+        g2.setColor(new Color(0, 0, 0, 30));
+        g2.fillRoundRect(cx + 1, cy + 2, cw, ch, 10, 10);
+
+        g2.setColor(new Color(244, 246, 247, 225));
+        g2.fillRoundRect(cx, cy, cw, ch, 10, 10);
+
         g2.setColor(BORDE);
-        g2.drawRoundRect(cx, cy, cw, ch, 12, 12);
+        g2.drawRoundRect(cx, cy, cw, ch, 10, 10);
+
+        g2.setColor(new Color(195, 202, 208));
+        g2.drawLine(cx + 14, cy + 32, cx + cw - 14, cy + 32);
     }
 }
